@@ -99,6 +99,11 @@ main { max-width: 1080px; margin-inline: auto; display: flex; flex-direction: co
 .big .u { font-family: var(--f-display); font-weight: 600; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-right: 8px; }
 .big .s { font-family: var(--f-mono); font-weight: 500; font-size: 1.5rem; color: var(--accent); font-variant-numeric: tabular-nums; }
 .soon .big .n { color: var(--accent); }
+.big.sm { margin-top: 2px; }
+.big.sm .n { font-size: clamp(2.1rem, 9vw, 2.7rem); }
+.big.sm .u { font-size: 0.9rem; }
+.big.sm .s { font-size: 1.1rem; }
+.soon .big.sm .n { color: var(--ink); }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 0.9rem; }
 .meta b { font-weight: 600; }
 .pill { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--ink); white-space: nowrap; }
@@ -250,12 +255,15 @@ footer { color: var(--muted); font-size: 0.8rem; display: flex; flex-direction: 
       '<div><div class="from">From 由</div><div class="sname"><b>' + s.zh + '</b><span>' + s.en + '</span></div></div>' +
       '<div class="hero"><div class="lab">Next bus 下一班</div><div class="big" aria-live="off"></div></div>' +
       '<div class="meta"></div>' +
+      '<div><div class="lab">Bus after that</div><div class="big sm big2" aria-live="off"></div><div class="meta meta2"></div></div>' +
       '<div><div class="lab" style="margin-bottom:4px">Then</div><ul class="then"></ul></div>' +
       '<details><summary>All departures</summary><div class="chips"></div><div class="legend">* via Market</div></details>';
     root.appendChild(el);
     panels[s.id] = {
       el: el,
       big: el.querySelector(".big"),
+      big2: el.querySelector(".big2"),
+      meta2: el.querySelector(".meta2"),
       meta: el.querySelector(".meta"),
       then: el.querySelector(".then"),
       chips: el.querySelector(".chips"),
@@ -288,9 +296,9 @@ footer { color: var(--muted); font-size: 0.8rem; display: flex; flex-direction: 
       for (var i = 0; i < list.length; i++) { if (list[i].t * 60 >= nowSec) { idx = i; break; } }
 
       var items = [];
-      if (idx >= 0) for (var j = idx; j < list.length && items.length < 4; j++) items.push({ d: list[j], off: 0 });
+      if (idx >= 0) for (var j = idx; j < list.length && items.length < 5; j++) items.push({ d: list[j], off: 0 });
       var tmr = TT[tmrType][s.id];
-      for (var k = 0; k < tmr.length && items.length < 4; k++) items.push({ d: tmr[k], off: 1 });
+      for (var k = 0; k < tmr.length && items.length < 5; k++) items.push({ d: tmr[k], off: 1 });
 
       var first = items[0];
       var rem = first.d.t * 60 + first.off * 86400 - nowSec;
@@ -299,7 +307,12 @@ footer { color: var(--muted); font-size: 0.8rem; display: flex; flex-direction: 
       P.meta.innerHTML =
         '<b>' + (first.off ? "Tomorrow " : "Departs ") + fmt12(first.d.t) + '</b>' + pills(first.d, isMkt);
 
-      P.then.innerHTML = items.slice(1).map(function (it) {
+      var sec = items[1];
+      if (sec) {
+        P.big2.innerHTML = durBig(sec.d.t * 60 + sec.off * 86400 - nowSec);
+        P.meta2.innerHTML = '<b>' + (sec.off ? "Tomorrow " : "Departs ") + fmt12(sec.d.t) + '</b>' + pills(sec.d, isMkt);
+      }
+      P.then.innerHTML = items.slice(2).map(function (it) {
         var r = it.d.t * 60 + it.off * 86400 - nowSec;
         return '<li><span class="tm">' + (it.off ? "Tomorrow " : "") + fmt12(it.d.t) + '</span><span>' + pills(it.d, isMkt) + '</span><span class="in">' + durText(r) + '</span></li>';
       }).join("");
